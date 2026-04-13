@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aarogya AI - Health Monitoring Dashboard</title>
+    <meta name="description"
+        content="Aarogya AI: Real-time district-level disease outbreak prediction and health surveillance for Maharashtra.">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="topbar-menu">
+                <button class="menu-btn" id="menu-btn" type="button" aria-haspopup="true" aria-expanded="false"
+                    aria-controls="topbar-menu-list">
+                    <span class="menu-icon" aria-hidden="true">☰</span>
+                    Menu
+                </button>
+                <nav class="topbar-menu-list" id="topbar-menu-list" aria-label="Main feature navigation">
+                    <a href="#map">Map</a>
+                    <a href="#alerts-section">Alerts</a>
+                    <a href="#graphs-section">Charts</a>
+                    <a href="#hotspots-realtime-section">Hotspots</a>
+                    <a href="#city-search-section">City Search</a>
+                    <a href="#health-input-section">Health Input</a>
+                    <button type="button" id="open-chat-menu-item">Health Assistant</button>
+                </nav>
+            </div>
+
+            <div class="brand">
+                <div class="brand-avatar" aria-hidden="true">A</div>
+                <div class="brand-text">
+                    <div class="brand-title">Aarogya AI</div>
+                    <div class="brand-subtitle">AI Health Monitoring • Maharashtra</div>
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <div id="auth-container">
+                    <!-- Auth UI injected by auth.js -->
+                </div>
+                <div class="live-pill">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    <span>Live demo</span>
+                </div>
+                <button class="refresh-btn" type="button">Refresh</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <div class="page-subtitle">
+                District-level AI predictions visualized on map, alerts, and trends.
+            </div>
+
+            <section id="stats-section" class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <h3>Active Alerts</h3>
+                        <span class="chip chip-monitoring">Monitoring</span>
+                    </div>
+                    <p class="stat-number" id="stat-active-alerts">4</p>
+                    <div class="stat-foot" id="stat-active-sub">Top: Pune, Gadchiroli</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <h3>High Risk Districts</h3>
+                        <span class="chip chip-high">High</span>
+                    </div>
+                    <p class="stat-number" id="stat-high">2</p>
+                    <div class="stat-foot">Immediate attention</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <h3>Medium Risk Districts</h3>
+                        <span class="chip chip-medium">Medium</span>
+                    </div>
+                    <p class="stat-number" id="stat-medium">2</p>
+                    <div class="stat-foot">Preventive actions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <h3>Safe Districts</h3>
+                        <span class="chip chip-safe">Safe</span>
+                    </div>
+                    <p class="stat-number" id="stat-safe">1</p>
+                    <div class="stat-foot">Stable conditions</div>
+                </div>
+            </section>
+
+            <section class="panel-grid">
+                <div class="panel panel-map">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title">Maharashtra Risk Map</div>
+                            <div class="panel-subtitle">Markers indicate current predicted risk level by district.</div>
+                        </div>
+                        <div class="legend">
+                            <span class="legend-item"><span class="dot dot-high" aria-hidden="true"></span> High</span>
+                            <span class="legend-item"><span class="dot dot-medium" aria-hidden="true"></span>
+                                Medium</span>
+                            <span class="legend-item"><span class="dot dot-safe" aria-hidden="true"></span> Safe</span>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                    <div class="map-tip">Tip: Hover markers to view prediction details.</div>
+
+                    <!-- NEW: Disease Prevention Advisory Section -->
+                    <div class="city-safety-advisory" id="city-safety-advisory"
+                        style="margin-top: 18px; display: none;">
+                        <div class="advisory-title">🛡️ Health & Safety Advisory</div>
+                        <div id="safety-tips-container" class="safety-tips-container">
+                            <!-- Tips will be injected here via dashboard.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-alerts" id="alerts-section">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title">Alerts</div>
+                            <div class="panel-subtitle">Prioritized signals generated from AI predictions.</div>
+                        </div>
+                        <button class="ghost-btn" type="button" id="alerts-toggle">Collapse</button>
+                    </div>
+                    <div id="alerts-container" class="alerts-list"></div>
+                </div>
+            </section>
+
+            <section class="panel panel-charts" id="graphs-section">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">AI Insights</div>
+                        <div class="panel-subtitle">Trends and distribution for quick decision-making.</div>
+                    </div>
+                </div>
+                <div id="graphs-container" class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-title">Disease Trend (Demo)</div>
+                        <div id="trend-chart"></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">Risk Distribution</div>
+                        <div id="distribution-chart"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel panel-hotspots-realtime" id="hotspots-realtime-section">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">Top Hotspots (Real-Time Simulation)</div>
+                        <div class="panel-subtitle">Auto-updates every 5-10 seconds from local dataset simulation.</div>
+                    </div>
+                </div>
+                <div id="hotspots-top-list" class="hotspots-top-list"></div>
+            </section>
+
+            <section class="panel panel-city-search" id="city-search-section">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">City Search</div>
+                        <div class="panel-subtitle">Find city stats, trend, risk level, and 7-day disease data.</div>
+                    </div>
+                </div>
+                <form id="city-search-form" class="city-search-form">
+                    <input id="city-search-input" type="text" placeholder="Enter city name (e.g., Pune)" required />
+                    <button class="primary-btn" type="submit">Search</button>
+                </form>
+                <div class="city-search-grid">
+                    <div id="city-search-result" class="city-search-result"></div>
+                    <div id="city-search-analytics" class="city-search-analytics">
+                        <div class="analytics-header">Top 5 Common Disease Risks (AI Expert)</div>
+                        <div id="city-diseases-list" class="city-diseases-list">
+                            <div class="analytics-placeholder">Search for a city to see AI health insights.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card city-chart-card">
+                    <div class="chart-title">Last 7 Days Trend</div>
+                    <canvas id="city-trend-chart" height="120"></canvas>
+                </div>
+            </section>
+
+            <section class="panel panel-health-input" id="health-input-section">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">Health Data Input</div>
+                        <div class="panel-subtitle">Enter district metrics to simulate AI risk prediction.</div>
+                    </div>
+                </div>
+
+                <form id="health-input-form" class="health-form" autocomplete="off">
+                    <div class="health-form-grid">
+                        <div class="field">
+                            <label for="health-district">District</label>
+                            <select id="health-district" required>
+                                <option value="" selected disabled>Select a district</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Nagpur">Nagpur</option>
+                                <option value="Nashik">Nashik</option>
+                                <option value="Aurangabad">Aurangabad</option>
+                                <option value="Solapur">Solapur</option>
+                                <option value="Kolhapur">Kolhapur</option>
+                                <option value="Amravati">Amravati</option>
+                                <option value="Latur">Latur</option>
+                                <option value="Gadchiroli">Gadchiroli</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="health-fever">Fever Cases</label>
+                            <input id="health-fever" type="number" min="0" step="1" placeholder="e.g., 420"
+                                list="range-fever" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-malnutrition">Malnutrition Rate (%)</label>
+                            <input id="health-malnutrition" type="number" min="0" step="0.1" placeholder="e.g., 18.5"
+                                list="range-malnutrition" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-water">Water Quality Index</label>
+                            <input id="health-water" type="number" min="0" max="100" step="0.1" placeholder="e.g., 55"
+                                list="range-water" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-rainfall">Rainfall (mm)</label>
+                            <input id="health-rainfall" type="number" min="0" step="0.1" placeholder="e.g., 86.5"
+                                list="range-rainfall" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-humidity">Humidity (%)</label>
+                            <input id="health-humidity" type="number" min="0" max="100" step="1" placeholder="e.g., 72"
+                                list="range-humidity" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-temperature">Temperature (°C)</label>
+                            <input id="health-temperature" type="number" step="0.1" placeholder="e.g., 31.5"
+                                list="range-temperature" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-density">Population Density (per km²)</label>
+                            <input id="health-density" type="number" min="0" step="1" placeholder="e.g., 1200"
+                                list="range-density" required />
+                        </div>
+                        <div class="field">
+                            <label for="health-outbreak">Past Outbreak</label>
+                            <select id="health-outbreak" required>
+                                <option value="" selected disabled>Select</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="health-form-actions">
+                        <button id="predict-risk-btn" class="primary-btn" type="submit">Predict Risk</button>
+                        <div id="health-form-status" class="health-form-status" aria-live="polite"></div>
+                    </div>
+                </form>
+
+                <!-- Range Suggestion Datalists -->
+                <datalist id="range-fever">
+                    <option value="100"></option>
+                    <option value="250"></option>
+                    <option value="420"></option>
+                    <option value="600"></option>
+                    <option value="850"></option>
+                    <option value="1200"></option>
+                </datalist>
+                <datalist id="range-malnutrition">
+                    <option value="5"></option>
+                    <option value="10"></option>
+                    <option value="18.5"></option>
+                    <option value="30"></option>
+                    <option value="40"></option>
+                    <option value="50"></option>
+                    <option value="60"></option>
+                    <option value="70"></option>
+                </datalist>
+                <datalist id="range-water">
+                    <option value="20"></option>
+                    <option value="40"></option>
+                    <option value="55"></option>
+                    <option value="70"></option>
+                    <option value="90"></option>
+                </datalist>
+                <datalist id="range-rainfall">
+                    <option value="20"></option>
+                    <option value="50"></option>
+                    <option value="86.5"></option>
+                    <option value="150"></option>
+                    <option value="300"></option>
+                    <option value="500"></option>
+                </datalist>
+                <datalist id="range-humidity">
+                    <option value="30"></option>
+                    <option value="50"></option>
+                    <option value="72"></option>
+                    <option value="85"></option>
+                    <option value="95"></option>
+                </datalist>
+                <datalist id="range-temperature">
+                    <option value="15"></option>
+                    <option value="25"></option>
+                    <option value="31.5"></option>
+                    <option value="38"></option>
+                    <option value="45"></option>
+                </datalist>
+                <datalist id="range-density">
+                    <option value="200"></option>
+                    <option value="500"></option>
+                    <option value="1000"></option>
+                    <option value="1200"></option>
+                    <option value="2500"></option>
+                    <option value="5000"></option>
+                    <option value="10000"></option>
+                </datalist>
+
+                <div class="prediction-result-card" id="prediction-result">
+                    <div class="prediction-result-row">
+                        <div class="prediction-label">Model</div>
+                        <div class="prediction-value" id="prediction-model">Rule-Based (Random Forest mirror)</div>
+                    </div>
+                    <div class="prediction-result-row">
+                        <div class="prediction-label">Risk Level</div>
+                        <div class="prediction-value" id="prediction-risk" data-risk="-">-</div>
+                    </div>
+                    <div class="prediction-result-row">
+                        <div class="prediction-label">Probability</div>
+                        <div class="prediction-value" id="prediction-probability">-</div>
+                    </div>
+                    <div class="prediction-result-row">
+                        <div class="prediction-label">Risk Score</div>
+                        <div class="prediction-value" id="prediction-confidence">-</div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <div>Aarogya AI • District-level health surveillance powered by CodeVaidya</div>
+                <div class="footer-tabs" aria-hidden="true">
+                    <span class="tab-pill">Map</span>
+                    <span class="tab-pill">Alerts</span>
+                    <span class="tab-pill">Charts</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget" id="chat-widget">
+        <button class="chat-toggle-btn" id="chat-toggle-btn" type="button" aria-label="Open health assistant chat">
+            Chat
+        </button>
+
+        <section class="chat-panel" id="chat-panel" aria-hidden="true">
+            <header class="chat-header">
+                <div>
+                    <div class="chat-title">Health Assistant</div>
+                    <div class="chat-subtitle">Outbreak-aware safety guidance</div>
+                </div>
+                <button class="chat-close-btn" id="chat-close-btn" type="button" aria-label="Close chat">x</button>
+            </header>
+            <div class="chat-disclaimer">This is not a medical diagnosis.</div>
+            <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+            <form class="chat-input-row" id="chat-form">
+                <input id="chat-input" type="text" placeholder="Ask about symptoms, diseases, or prevention..."
+                    autocomplete="off" required />
+                <button id="chat-send-btn" type="submit">Send</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- Third-party libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module" src="js/auth.js?v=2"></script>
+
+    <!-- API base: empty = same origin (served by backend). Fallback for file:// access. -->
+    <script>
+        window.__AAROGYA_CHAT_API_BASE__ = (location.protocol === 'file:')
+            ? 'http://127.0.0.1:8000'
+            : '';   // same origin — backend serves both API and frontend
+    </script>
+
+    <!-- App modules — load order matters: api → map → charts → chat → dashboard -->
+    <script src="js/api.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>
