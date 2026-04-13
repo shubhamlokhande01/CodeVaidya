@@ -1,8 +1,9 @@
 // api.js — Aarogya AI
 // All backend API constants and fetch helpers live here.
 
+// Use the global config if set (for deployment), otherwise fallback to localhost (for development)
 const CHAT_API_BASE      = window.__AAROGYA_CHAT_API_BASE__ || 'http://127.0.0.1:8000';
-const CHAT_API_URL       = `${CHAT_API_BASE}/chat`;
+const CHAT_API_URL       = `${CHAT_API_BASE}/chat`.replace('//chat', '/chat');
 const CHAT_HEALTH_URL    = `${CHAT_API_BASE}/health`;
 const HOTSPOTS_API_URL   = `${CHAT_API_BASE}/hotspots`;
 const CITY_SEARCH_API_URL = `${CHAT_API_BASE}/search`;
